@@ -19,8 +19,8 @@ import { Request, Response, NextFunction } from "express";
 
 const FLAKY_ENABLED = process.env.FLAKY_ENABLED !== "false";
 
-const SLOW_PROBABILITY  = 0.30; // 30% chance of slow response
-const ERROR_PROBABILITY = 0.20; // 20% chance of 500 error on POST
+const SLOW_PROBABILITY = 0.3; // 30% chance of slow response
+const ERROR_PROBABILITY = 0.2; // 20% chance of 500 error on POST
 
 const SLOW_MIN_MS = 2000;
 const SLOW_MAX_MS = 4500;
@@ -34,12 +34,7 @@ const SLOW_ENDPOINTS = [
 ];
 
 // Endpoints that receive random 500-error injection (POST only)
-const ERROR_ENDPOINTS = [
-  "/api/transactions",
-  "/api/bankaccounts",
-  "/api/comments",
-  "/api/likes",
-];
+const ERROR_ENDPOINTS = ["/api/transactions", "/api/bankaccounts", "/api/comments", "/api/likes"];
 
 function randomInt(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -53,11 +48,7 @@ function shouldTrigger(probability: number): boolean {
  * Slow-response middleware — applied to GET requests on key endpoints.
  * Randomly delays the response to simulate network latency or DB slowness.
  */
-export function slowResponseMiddleware(
-  req: Request,
-  res: Response,
-  next: NextFunction
-): void {
+export function slowResponseMiddleware(req: Request, res: Response, next: NextFunction): void {
   if (req.method !== "GET") return next();
 
   const matched = SLOW_ENDPOINTS.some((ep) => req.path.startsWith(ep.replace("/api", "")));
@@ -76,11 +67,7 @@ export function slowResponseMiddleware(
  * Random error middleware — applied to POST requests on key endpoints.
  * Randomly returns a 500 to simulate an unstable backend dependency.
  */
-export function randomErrorMiddleware(
-  req: Request,
-  res: Response,
-  next: NextFunction
-): void {
+export function randomErrorMiddleware(req: Request, res: Response, next: NextFunction): void {
   if (req.method !== "POST") return next();
 
   const matched = ERROR_ENDPOINTS.some((ep) => req.path.startsWith(ep.replace("/api", "")));
