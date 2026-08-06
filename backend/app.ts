@@ -22,6 +22,7 @@ import commentRoutes from "./comment-routes";
 import notificationRoutes from "./notification-routes";
 import bankTransferRoutes from "./banktransfer-routes";
 import testDataRoutes from "./testdata-routes";
+import { slowResponseMiddleware, randomErrorMiddleware } from "./flakiness-middleware";
 import { checkAuth0Jwt, verifyOktaToken, checkCognitoJwt, checkGoogleJwt } from "./helpers";
 import resolvers from "./graphql/resolvers";
 import { frontendPort, getBackendPort } from "../src/utils/portUtils";
@@ -108,6 +109,9 @@ app.use(
     },
   })
 );
+// Flakiness injection — MSc dissertation research (A00046299)
+app.use(slowResponseMiddleware);
+app.use(randomErrorMiddleware);
 app.use("/users", userRoutes);
 app.use("/contacts", contactRoutes);
 app.use("/bankAccounts", bankAccountRoutes);
