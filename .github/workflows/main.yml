@@ -1,4 +1,4 @@
-name: Cypress Tests (AI-Assisted)
+name: Cypress Tests
 
 on:
   push:
@@ -18,22 +18,13 @@ jobs:
         group:
           - name: group-1
             specs: "cypress/tests/ui/transaction-feeds.spec.ts"
-            label: "navigation"
           - name: group-2
             specs: "cypress/tests/ui/new-transaction.spec.ts,cypress/tests/ui/notifications.spec.ts"
-            label: "crud"
           - name: group-3
             specs: "cypress/tests/ui/auth.spec.ts,cypress/tests/ui/bankaccounts.spec.ts,cypress/tests/ui/transaction-view.spec.ts,cypress/tests/ui/user-settings.spec.ts"
-            label: "search"
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
 
       - name: Cypress install
         uses: cypress-io/github-action@v6
@@ -46,7 +37,6 @@ jobs:
       - run: yarn build:ci
 
       - name: Run Cypress E2E tests (${{ matrix.group.name }})
-        id: cypress
         uses: cypress-io/github-action@v6
         with:
           start: yarn start:ci
@@ -57,32 +47,3 @@ jobs:
           config-file: cypress.config.ts
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        continue-on-error: true
-
-      - name: AI Flakiness Classification
-        if: steps.cypress.outcome == 'failure'
-        run: |
-          python ai_classifier_ci.py \
-            --group ${{ matrix.group.label }} \
-            --passed 0 \
-            --run-number ${{ github.run_number }} \
-            --project cypress-realworld-app
-
-      - name: Update Pass Rate History (on success)
-        if: steps.cypress.outcome == 'success'
-        run: |
-          python ai_classifier_ci.py \
-            --group ${{ matrix.group.label }} \
-            --passed 1 \
-            --run-number ${{ github.run_number }} \
-            --project cypress-realworld-app
-
-      - name: Upload AI Decision
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ai-decision-${{ matrix.group.name }}-${{ github.run_number }}
-          path: |
-            decision.json
-            ai_decisions_log.jsonl
-          retention-days: 30
